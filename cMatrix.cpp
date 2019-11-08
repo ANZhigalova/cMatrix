@@ -1,37 +1,50 @@
-#include "Matrix.h"
+#include "cMatrix.h"
 #include <math.h>
 using namespace std;
 
-Matrix::Matrix(): row(0), col(0), M(NULL)
+cMatrix::cMatrix(): row(0), col(0), M(NULL)
 {
 }
 
-Matrix::Matrix(int m, int n): row(m), col(n)
-{	
-}
-
-Matrix::Matrix(int m, int n, double*arr): row(m), col(n)
+cMatrix::cMatrix(int m, int n) : row(m), col(n)
 {
-
+	M = new double*[row];
+	for (int i = 0; i < row; i++) {
+		M[i] = new double[col];
+		for (int j = 0; j < col; j++)
+			M[i][j] = 0;
+	}
 }
 
-Matrix::Matrix(const Matrix& copy)
+cMatrix::cMatrix(int m, int n, double*N) :row(m), col(n)
+{
+	M = new double*[row];
+	for (int i = 0; i < row; i++) {
+		M[i] = new double[col];
+		for (int j = 0; j < col; j++)
+			M[i][j] = N[i*col + j];
+	}
+}
+
+cMatrix::cMatrix(const cMatrix& copy)
 {
 	row = copy.row;
 	col = copy.col;
-	//M = new double*[row];
 	for (int i = 0; i < row; i++) {
+		M[i] = new double[col];
 		for (int j = 0; j < col; j++)
 			M[i][j] = copy.M[i][j];
 	}
 }
 
-Matrix::~Matrix()
+cMatrix::~cMatrix()
 {
+	for (int i = 0; i < row; i++)
+		delete[] M[i];
 	delete[] M;
 }
 
-Matrix& Matrix::operator = (const Matrix& other)
+cMatrix& cMatrix::operator = (const cMatrix& other)
 {
 	if (this == &other)
 		return *this;
@@ -42,7 +55,7 @@ Matrix& Matrix::operator = (const Matrix& other)
 		row = other.row;
 		col = other.col;
 		for (int i = 0; i < row; i++) {
-			//M[i] = new int[col];
+			M[i] = new double[col];
 			for (int j = 0; j < col; j++)
 				M[i][j] = other.M[i][j];
 		}
@@ -50,12 +63,11 @@ Matrix& Matrix::operator = (const Matrix& other)
 	}
 }
 
-Matrix Matrix::operator + (const Matrix& other) const
+cMatrix cMatrix::operator + (const cMatrix& other) const
 {
 	if (row == other.row or col == other.col) {
-		Matrix S(row, col);
+		cMatrix S(row, col);
 		for (int i = 0; i < row; i++) {
-			//S[i] = new int[col];
 			for (int j = 0; j < col; j++)
 				S[i][j] = M[i][j] + other.M[i][j];
 		}
@@ -64,38 +76,35 @@ Matrix Matrix::operator + (const Matrix& other) const
 	else throw;
 }
 
-Matrix Matrix::operator - (const Matrix& other) const
+cMatrix cMatrix::operator - (const cMatrix& other) const
 {
-	
+
 	if (row == other.row or col == other.col) {
-		Matrix D(row, col);
-	for (int i = 0; i < row; i++) {
-		//D[i] = new int[col];
-		for (int j = 0; j < col; j++)
-			D[i][j] = M[i][j] - other.M[i][j];
-	}
-	return D;
+		cMatrix D(row, col);
+		for (int i = 0; i < row; i++) {
+			for (int j = 0; j < col; j++)
+				D[i][j] = M[i][j] - other.M[i][j];
+		}
+		return D;
 	}
 	else throw;
 }
 
-Matrix Matrix::operator * (double l) const
+cMatrix cMatrix::operator * (double l) const
 {
-	Matrix m(row, col);
+	cMatrix m(row, col);
 	for (int i = 0; i < row; i++) {
-		//m[i] = new int[col];
 		for (int j = 0; j < col; j++)
 			m[i][j] = M[i][j] * l;
 	}
 	return m;
 }
 
-Matrix Matrix::operator * (const Matrix& other) const
+cMatrix cMatrix::operator * (const cMatrix& other) const
 {
 	if (col == other.row) {
-		Matrix mul(row, col);
+		cMatrix mul(row, col);
 		for (int i = 0; i < row; i++) {
-			//mul[i] = new int[col];
 			for (int j = 0; j < col; j++) {
 				mul[i][j] = 0;
 				for (int k = 0; k < col; k++)
@@ -107,41 +116,35 @@ Matrix Matrix::operator * (const Matrix& other) const
 	else throw;
 }
 
-Matrix Matrix::operator ! ()
+cMatrix cMatrix::operator ! ()
 {
-	Matrix T(row, col);
+	cMatrix T(row, col);
 	for (int i = 0; i < row; i++) {
-		//T[i] = new int[col];
 		for (int j = 0; j < col; j++)
 			T[j][i] = M[i][j];
 	}
 	return T;
 }
 
-inline Matrix::Row Matrix::operator [](int index)
+inline cMatrix::Row cMatrix::operator [](int index)
 {
-	if(index <= col)
-		return Row(M + (col*index), col);
+	if (index <= col)
+		return Row(M[index], col);
 	else throw;
 }
 
-inline double& Matrix::Row::operator[](int index)
+inline double& cMatrix::Row::operator[](int index)
 {
 	if (index <= cols)
 		return elem[index];
 	else throw;
 }
 
-inline double** Matrix::create_matr(int m, int n) {
-	double**N = new double*[row];
-	for (int i = 0; i < row; i++)
-		N[i] = new double[row];
-	return N;
-}
-ostream& operator <<(ostream& out, Matrix& obj) {
+ostream& operator <<(ostream& out, cMatrix& obj) {
 	for (int i = 0; i < obj.row; i++) {
 		for (int j = 0; j < obj.col; j++)
 			out << obj.M[i][j] << " ";
 	}
 	return out;
 }
+
